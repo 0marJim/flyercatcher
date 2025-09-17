@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyerCatcher Community Board - Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        .back-link:hover {
+            opacity: 0.8;
+        }
+
+        .board-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            min-height: 80vh;
+        }
+
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .board-title {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .upload-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #5855eb;
+            transform: translateY(-2px);
+        }
+
+        .flyers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .flyer-card {
+            background: #f8fafc;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .flyer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .flyer-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .flyer-info {
+            padding: 20px;
+        }
+
+        .flyer-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .flyer-details {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .flyer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #6366f1;
+            background: #f8fafc;
+        }
+
+        .file-upload.dragover {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-text {
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-hint {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tab.active {
+            background: #6366f1;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .board-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+            
+            .flyers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to FlyerCatcher
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-bullhorn"></i>
+                Community Event Board
+            </h1>
+            <p>Share and discover local events in your community</p>
+        </div>
+
+        <div class="board-container">
+            <div class="board-header">
+                <div class="board-title">Latest Event Flyers</div>
+                <button class="upload-btn" onclick="openUploadModal()">
+                    <i class="fas fa-plus"></i>
+                    Share Event
+                </button>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterEvents('all')">All Events</button>
+                <button class="filter-tab" onclick="filterEvents('music')">Music</button>
+                <button class="filter-tab" onclick="filterEvents('food')">Food & Drink</button>
+                <button class="filter-tab" onclick="filterEvents('art')">Art & Culture</button>
+                <button class="filter-tab" onclick="filterEvents('sports')">Sports</button>
+                <button class="filter-tab" onclick="filterEvents('community')">Community</button>
+            </div>
+
+            <div class="flyers-grid" id="flyersGrid">
+                <!-- Sample flyers will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Share Your Event</h2>
+                <p>Help your community discover amazing local events!</p>
+            </div>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" required placeholder="e.g., Live Jazz Night">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" placeholder="Tell people what makes this event special..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventLocation">Location *</label>
+                    <input type="text" id="eventLocation" required placeholder="e.g., Downtown Music Venue">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDate">Date & Time *</label>
+                    <input type="datetime-local" id="eventDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventCategory">Category</label>
+                    <select id="eventCategory">
+                        <option value="music">Music</option>
+                        <option value="food">Food & Drink</option>
+                        <option value="art">Art & Culture</option>
+                        <option value="sports">Sports</option>
+                        <option value="community">Community</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Event Flyer/Photo</label>
+                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
+                        <div class="file-upload-text">Click to upload or drag and drop</div>
+                        <div class="file-upload-hint">PNG, JPG, PDF up to 10MB</div>
+                        <input type="file" id="fileInput" accept="image/*,.pdf" style="display: none;">
+                    </div>
+                </div>
+            </form>
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitEvent()">Share Event</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample event data
+        const sampleEvents = [
+            {
+                id: 1,
+                title: "Summer Jazz Festival",
+                description: "An evening of smooth jazz with local and touring artists",
+                location: "Riverside Park Amphitheater",
+                date: "2024-07-15T19:00",
+                category: "music",
+                image: "linear-gradient(45deg, #667eea, #764ba2)",
+                postedBy: "EventPro",
+                postedDate: "2 days ago"
+            },
+            {
+                id: 2,
+                title: "Food Truck Friday",
+                description: "Over 20 food trucks serving diverse cuisines",
+                location: "Downtown Square",
+                date: "2024-07-12T17:00",
+                category: "food",
+                image: "linear-gradient(45deg, #f093fb, #f5576c)",
+                postedBy: "CityEvents",
+                postedDate: "5 days ago"
+            },
+            {
+                id: 3,
+                title: "Local Art Exhibition",
+                description: "Featuring works by emerging local artists",
+                location: "Community Arts Center",
+                date: "2024-07-20T10:00",
+                category: "art",
+                image: "linear-gradient(45deg, #4facfe, #00f2fe)",
+                postedBy: "ArtLover",
+                postedDate: "1 week ago"
+            },
+            {
+                id: 4,
+                title: "Morning Yoga in the Park",
+                description: "Free community yoga session for all levels",
+                location: "Central Park Pavilion",
+                date: "2024-07-13T08:00",
+                category: "community",
+                image: "linear-gradient(45deg, #43e97b, #38f9d7)",
+                postedBy: "YogaCommunity",
+                postedDate: "3 days ago"
+            },
+            {
+                id: 5,
+                title: "Basketball Tournament",
+                description: "3v3 street basketball tournament with prizes",
+                location: "Community Recreation Center",
+                date: "2024-07-16T14:00",
+                category: "sports",
+                image: "linear-gradient(45deg, #fa709a, #fee140)",
+                postedBy: "SportsClub",
+                postedDate: "1 day ago"
+            },
+            {
+                id: 6,
+                title: "Poetry Open Mic Night",
+                description: "Share your poetry or enjoy performances by others",
+                location: "The Coffee House",
+                date: "2024-07-18T19:30",
+                category: "art",
+                image: "linear-gradient(45deg, #a8edea, #fed6e3)",
+                postedBy: "PoetryGroup",
+                postedDate: "4 days ago"
+            }
+        ];
+
+        let currentFilter = 'all';
+        let events = [...sampleEvents];
+
+        // Initialize the board
+        document.addEventListener('DOMContentLoaded', function() {
+            renderEvents();
+            setupFileUpload();
+        });
+
+        function renderEvents() {
+            const grid = document.getElementById('flyersGrid');
+            const filteredEvents = currentFilter === 'all' 
+                ? events 
+                : events.filter(event => event.category === currentFilter);
+
+            if (filteredEvents.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No events found</h3>
+                        <p>Be the first to share an event in this category!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filteredEvents.map(event => `
+                <div class="flyer-card" data-category="${event.category}">
+                    <div class="flyer-image" style="background: ${event.image}"></div>
+                    <div class="flyer-info">
+                        <div class="flyer-title">${event.title}</div>
+                        <div class="flyer-details">
+                            <i class="fas fa-map-marker-alt"></i> ${event.location}<br>
+                            <i class="fas fa-clock"></i> ${formatDate(event.date)}
+                        </div>
+                        <div class="flyer-meta">
+                            <span>By ${event.postedBy}</span>
+                            <span>${event.postedDate}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function filterEvents(category) {
+            currentFilter = category;
+            
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderEvents();
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('uploadForm').reset();
+        }
+
+        function setupFileUpload() {
+            const fileUpload = document.querySelector('.file-upload');
+            const fileInput = document.getElementById('fileInput');
+
+            // Handle drag and drop
+            fileUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            fileUpload.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            fileUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFileUpload(file) {
+            const fileUpload = document.querySelector('.file-upload');
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+
+            const fileName = file.name;
+            fileUpload.innerHTML = `
+                <i class="fas fa-check-circle file-upload-icon" style="color: #10b981;"></i>
+                <div class="file-upload-text" style="color: #10b981;">File uploaded: ${fileName}</div>
+                <div class="file-upload-hint">Click to change file</div>
+            `;
+        }
+
+        function submitEvent() {
+            const title = document.getElementById('eventTitle').value;
+            const description = document.getElementById('eventDescription').value;
+            const location = document.getElementById('eventLocation').value;
+            const date = document.getElementById('eventDate').value;
+            const category = document.getElementById('eventCategory').value;
+
+            if (!title || !location || !date) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Create new event
+            const newEvent = {
+                id: events.length + 1,
+                title,
+                description,
+                location,
+                date,
+                category,
+                image: getRandomGradient(),
+                postedBy: "You",
+                postedDate: "Just now"
+            };
+
+            events.unshift(newEvent); // Add to beginning
+            renderEvents();
+            closeUploadModal();
+
+            // Show success message
+            showNotification('Event shared successfully! 🎉');
+        }
+
+        function getRandomGradient() {
+            const gradients = [
+                "linear-gradient(45deg, #667eea, #764ba2)",
+                "linear-gradient(45deg, #f093fb, #f5576c)",
+                "linear-gradient(45deg, #4facfe, #00f2fe)",
+                "linear-gradient(45deg, #43e97b, #38f9d7)",
+                "linear-gradient(45deg, #fa709a, #fee140)",
+                "linear-gradient(45deg, #a8edea, #fed6e3)",
+                "linear-gradient(45deg, #ffecd2, #fcb69f)",
+                "linear-gradient(45deg, #c3cfe2, #c3cfe2)"
+            ];
+            return gradients[Math.floor(Math.random() * gradients.length)];
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                z-index: 1001;
+                font-weight: 500;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('uploadModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUploadModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeUploadModal();
+            }
+        });
+    </script>
+</body>
+</html>
