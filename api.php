@@ -90,6 +90,12 @@ function handleGetRequest($db, $path) {
 
 function handlePostRequest($db, $path) {
     if ($path === 'events' || $path === '') {
+        // Check if this is a file upload request
+        if (isset($_FILES['image']) && !empty($_FILES['image']['name'])) {
+            handleImageUpload($db);
+            return;
+        }
+        
         $input = json_decode(file_get_contents('php://input'), true);
         
         // Validate required fields
@@ -107,10 +113,11 @@ function handlePostRequest($db, $path) {
         $category = isset($input['category']) ? $input['category'] : 'other';
         $postedBy = isset($input['posted_by']) ? $input['posted_by'] : 'Anonymous';
         $imageGradient = isset($input['image_gradient']) ? $input['image_gradient'] : getRandomGradient();
+        $imageUrl = isset($input['image_url']) ? $input['image_url'] : '';
         
         try {
-            $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, posted_by) 
-                                 VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, image_url, posted_by) 
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             
             $stmt->execute([
                 $input['title'],
@@ -119,6 +126,7 @@ function handlePostRequest($db, $path) {
                 $input['event_date'],
                 $category,
                 $imageGradient,
+                $imageUrl,
                 $postedBy
             ]);
             
@@ -142,6 +150,93 @@ function handlePostRequest($db, $path) {
     } else {
         http_response_code(404);
         echo json_encode(['error' => 'Endpoint not found']);
+    }
+}
+
+function handleImageUpload($db) {
+    try {
+        // Validate file upload
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No valid image uploaded']);
+            return;
+        }
+        
+        $file = $_FILES['image'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        if (!in_array($file['type'], $allowedTypes)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid file type. Only JPG, PNG, GIF, and WebP allowed.']);
+            return;
+        }
+        
+        if ($file['size'] > 10 * 1024 * 1024) { // 10MB limit
+            http_response_code(400);
+            echo json_encode(['error' => 'File too large. Maximum size is 10MB.']);
+            return;
+        }
+        
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('event_', true) . '.' . $extension;
+        $uploadPath = 'uploads/' . $filename;
+        $fullPath = __DIR__ . '/' . $uploadPath;
+        
+        // Move uploaded file
+        if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to save uploaded file']);
+            return;
+        }
+        
+        // Get form data
+        $title = $_POST['title'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $location = $_POST['location'] ?? '';
+        $eventDate = $_POST['event_date'] ?? '';
+        $category = $_POST['category'] ?? 'other';
+        $postedBy = $_POST['posted_by'] ?? 'Anonymous';
+        
+        // Validate required fields
+        if (empty($title) || empty($location) || empty($eventDate)) {
+            unlink($fullPath); // Clean up uploaded file
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing required fields']);
+            return;
+        }
+        
+        // Insert into database
+        $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, image_url, posted_by) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        $stmt->execute([
+            $title,
+            $description,
+            $location,
+            $eventDate,
+            $category,
+            '', // No gradient when we have an image
+            $uploadPath,
+            $postedBy
+        ]);
+        
+        $eventId = $db->lastInsertId();
+        
+        // Return the created event
+        $stmt = $db->prepare("SELECT * FROM events WHERE id = ?");
+        $stmt->execute([$eventId]);
+        $event = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $event['formatted_date'] = formatEventDate($event['event_date']);
+        $event['posted_date'] = getRelativeTime($event['created_at']);
+        
+        http_response_code(201);
+        echo json_encode($event);
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to process image upload']);
     }
 }
 

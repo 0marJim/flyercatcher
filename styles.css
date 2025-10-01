@@ -44,7 +44,7 @@ body {
     align-items: center;
     font-size: 24px;
     font-weight: 700;
-    color: #6366f1;
+    color: #2563eb;
 }
 
 .logo i {
@@ -66,11 +66,11 @@ body {
 }
 
 .nav-links a:hover {
-    color: #6366f1;
+    color: #2563eb;
 }
 
 .cta-btn {
-    background: #6366f1;
+    background: #2563eb;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -81,13 +81,13 @@ body {
 }
 
 .cta-btn:hover {
-    background: #5855eb;
+    background: #1d4ed8;
     transform: translateY(-2px);
 }
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     padding-top: 70px;
     min-height: 100vh;
     display: flex;
@@ -168,7 +168,7 @@ body {
 
 .primary-btn {
     background: white;
-    color: #6366f1;
+    color: #2563eb;
 }
 
 .primary-btn:hover {
@@ -184,7 +184,7 @@ body {
 
 .secondary-btn:hover {
     background: white;
-    color: #6366f1;
+    color: #2563eb;
 }
 
 /* Phone Mockup */
@@ -286,7 +286,7 @@ body {
 .feature-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -347,13 +347,13 @@ body {
 }
 
 .prototype-features i {
-    color: #6366f1;
+    color: #2563eb;
     margin-right: 15px;
     width: 20px;
 }
 
 .prototype-btn {
-    background: #6366f1;
+    background: #2563eb;
     color: white;
     border: none;
     padding: 15px 30px;
@@ -369,9 +369,9 @@ body {
 }
 
 .prototype-btn:hover {
-    background: #5855eb;
+    background: #1d4ed8;
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
 }
 
 /* Bulletin Board Preview */
@@ -421,7 +421,7 @@ body {
 }
 
 .upload-area {
-    background: #6366f1;
+    background: #2563eb;
     color: white;
     padding: 20px;
     border-radius: 15px;
@@ -431,7 +431,7 @@ body {
 }
 
 .upload-area:hover {
-    background: #5855eb;
+    background: #1d4ed8;
     transform: translateY(-2px);
 }
 
@@ -490,7 +490,7 @@ body {
 /* CTA Section */
 .cta-section {
     padding: 100px 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
     text-align: center;
 }
@@ -524,7 +524,7 @@ body {
 
 .submit-btn {
     background: white;
-    color: #6366f1;
+    color: #2563eb;
     border: none;
     padding: 15px 30px;
     border-radius: 30px;
@@ -560,7 +560,7 @@ body {
 
 .footer-brand .logo {
     margin-bottom: 15px;
-    color: #6366f1;
+    color: #2563eb;
 }
 
 .footer-brand p {
@@ -587,7 +587,7 @@ body {
 }
 
 .link-group a:hover {
-    color: #6366f1;
+    color: #2563eb;
 }
 
 .footer-bottom {

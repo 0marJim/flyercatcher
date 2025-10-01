@@ -536,22 +536,31 @@
                 return;
             }
 
-            grid.innerHTML = events.map(event => `
-                <div class="flyer-card" data-category="${event.category}">
-                    <div class="flyer-image" style="background: ${event.image_gradient}"></div>
-                    <div class="flyer-info">
-                        <div class="flyer-title">${event.title}</div>
-                        <div class="flyer-details">
-                            <i class="fas fa-map-marker-alt"></i> ${event.location}<br>
-                            <i class="fas fa-clock"></i> ${event.formatted_date}
-                        </div>
-                        <div class="flyer-meta">
-                            <span>By ${event.posted_by}</span>
-                            <span>${event.posted_date}</span>
+            grid.innerHTML = events.map(event => {
+                let imageStyle = '';
+                if (event.image_url && event.image_url.trim() !== '') {
+                    imageStyle = `background-image: url('${event.image_url}'); background-size: cover; background-position: center;`;
+                } else {
+                    imageStyle = `background: ${event.image_gradient || 'linear-gradient(45deg, #2563eb, #1d4ed8)'}`;
+                }
+                
+                return `
+                    <div class="flyer-card" data-category="${event.category}">
+                        <div class="flyer-image" style="${imageStyle}"></div>
+                        <div class="flyer-info">
+                            <div class="flyer-title">${event.title}</div>
+                            <div class="flyer-details">
+                                <i class="fas fa-map-marker-alt"></i> ${event.location}<br>
+                                <i class="fas fa-clock"></i> ${event.formatted_date}
+                            </div>
+                            <div class="flyer-meta">
+                                <span>By ${event.posted_by}</span>
+                                <span>${event.posted_date}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         async function filterEvents(category) {
@@ -576,6 +585,17 @@
             document.getElementById('uploadModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             document.getElementById('uploadForm').reset();
+            
+            // Reset file upload area
+            const fileUpload = document.querySelector('.file-upload');
+            fileUpload.innerHTML = `
+                <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
+                <div class="file-upload-text">Click to upload or drag and drop</div>
+                <div class="file-upload-hint">PNG, JPG, PDF up to 10MB</div>
+            `;
+            
+            // Clear selected file
+            window.selectedFile = null;
         }
 
         function setupFileUpload() {
@@ -614,9 +634,19 @@
             const fileUpload = document.querySelector('.file-upload');
             
             if (file.size > 10 * 1024 * 1024) {
-                alert('File size must be less than 10MB');
+                showError('File size must be less than 10MB');
                 return;
             }
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showError('Invalid file type. Only JPG, PNG, GIF, and WebP allowed.');
+                return;
+            }
+
+            // Store the file for later upload
+            window.selectedFile = file;
 
             const fileName = file.name;
             fileUpload.innerHTML = `
@@ -646,29 +676,52 @@
                 submitBtn.textContent = 'Sharing...';
                 submitBtn.disabled = true;
 
-                // Create new event via API
-                const eventData = {
-                    title,
-                    description,
-                    location,
-                    event_date: date,
-                    category,
-                    posted_by: "You"
-                };
+                let response;
 
-                const response = await fetch(API_BASE + '?path=events', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(eventData)
-                });
+                // Check if user uploaded an image
+                if (window.selectedFile) {
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    formData.append('image', window.selectedFile);
+                    formData.append('title', title);
+                    formData.append('description', description);
+                    formData.append('location', location);
+                    formData.append('event_date', date);
+                    formData.append('category', category);
+                    formData.append('posted_by', 'You');
+
+                    response = await fetch(API_BASE + '?path=events', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    // No image, send JSON data
+                    const eventData = {
+                        title,
+                        description,
+                        location,
+                        event_date: date,
+                        category,
+                        posted_by: "You"
+                    };
+
+                    response = await fetch(API_BASE + '?path=events', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(eventData)
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error('Failed to create event');
                 }
 
                 const newEvent = await response.json();
+                
+                // Clear the selected file
+                window.selectedFile = null;
                 
                 // Reload events to show the new one
                 await loadEvents();
@@ -714,14 +767,14 @@
 
         function getRandomGradient() {
             const gradients = [
-                "linear-gradient(45deg, #667eea, #764ba2)",
-                "linear-gradient(45deg, #f093fb, #f5576c)",
-                "linear-gradient(45deg, #4facfe, #00f2fe)",
-                "linear-gradient(45deg, #43e97b, #38f9d7)",
-                "linear-gradient(45deg, #fa709a, #fee140)",
-                "linear-gradient(45deg, #a8edea, #fed6e3)",
-                "linear-gradient(45deg, #ffecd2, #fcb69f)",
-                "linear-gradient(45deg, #c3cfe2, #c3cfe2)"
+                "linear-gradient(45deg, #2563eb, #1d4ed8)",
+                "linear-gradient(45deg, #1e40af, #1e3a8a)",
+                "linear-gradient(45deg, #3b82f6, #2563eb)",
+                "linear-gradient(45deg, #1d4ed8, #1e3a8a)",
+                "linear-gradient(45deg, #60a5fa, #3b82f6)",
+                "linear-gradient(45deg, #2563eb, #1e40af)",
+                "linear-gradient(45deg, #1e3a8a, #1e40af)",
+                "linear-gradient(45deg, #3b82f6, #1d4ed8)"
             ];
             return gradients[Math.floor(Math.random() * gradients.length)];
         }
