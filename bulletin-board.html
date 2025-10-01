@@ -465,10 +465,61 @@
                 renderEvents();
             } catch (error) {
                 console.error('Error loading events:', error);
-                showError('Failed to load events. Please try again.');
+                // Fallback to sample data if API fails
+                loadSampleEvents();
+                showError('Using offline mode. Events won\'t be saved.');
             } finally {
                 showLoading(false);
             }
+        }
+
+        // Fallback sample events for offline mode
+        function loadSampleEvents() {
+            events = [
+                {
+                    id: 1,
+                    title: "Summer Jazz Festival",
+                    description: "An evening of smooth jazz with local and touring artists",
+                    location: "Riverside Park Amphitheater",
+                    event_date: "2024-07-15 19:00:00",
+                    category: "music",
+                    image_gradient: "linear-gradient(45deg, #667eea, #764ba2)",
+                    posted_by: "EventPro",
+                    formatted_date: "Mon, Jul 15, 7:00 PM",
+                    posted_date: "2 days ago"
+                },
+                {
+                    id: 2,
+                    title: "Food Truck Friday",
+                    description: "Over 20 food trucks serving diverse cuisines",
+                    location: "Downtown Square",
+                    event_date: "2024-07-12 17:00:00",
+                    category: "food",
+                    image_gradient: "linear-gradient(45deg, #f093fb, #f5576c)",
+                    posted_by: "CityEvents",
+                    formatted_date: "Fri, Jul 12, 5:00 PM",
+                    posted_date: "5 days ago"
+                },
+                {
+                    id: 3,
+                    title: "Local Art Exhibition",
+                    description: "Featuring works by emerging local artists",
+                    location: "Community Arts Center",
+                    event_date: "2024-07-20 10:00:00",
+                    category: "art",
+                    image_gradient: "linear-gradient(45deg, #4facfe, #00f2fe)",
+                    posted_by: "ArtLover",
+                    formatted_date: "Sat, Jul 20, 10:00 AM",
+                    posted_date: "1 week ago"
+                }
+            ];
+            
+            // Filter events if needed
+            if (currentFilter !== 'all') {
+                events = events.filter(event => event.category === currentFilter);
+            }
+            
+            renderEvents();
         }
 
         function renderEvents() {
@@ -628,7 +679,32 @@
 
             } catch (error) {
                 console.error('Error creating event:', error);
-                showError('Failed to share event. Please try again.');
+                
+                // Fallback: add event locally for offline mode
+                const fallbackEvent = {
+                    id: events.length + 1,
+                    title,
+                    description,
+                    location,
+                    event_date: date,
+                    category,
+                    image_gradient: getRandomGradient(),
+                    posted_by: "You",
+                    formatted_date: new Date(date).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    }),
+                    posted_date: "Just now"
+                };
+                
+                events.unshift(fallbackEvent);
+                renderEvents();
+                closeUploadModal();
+                
+                showError('Event added locally. Note: Changes won\'t be saved permanently.');
             } finally {
                 // Reset button state
                 submitBtn.textContent = originalText;
