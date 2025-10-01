@@ -439,92 +439,42 @@
     </div>
 
     <script>
-        // Sample event data
-        const sampleEvents = [
-            {
-                id: 1,
-                title: "Summer Jazz Festival",
-                description: "An evening of smooth jazz with local and touring artists",
-                location: "Riverside Park Amphitheater",
-                date: "2024-07-15T19:00",
-                category: "music",
-                image: "linear-gradient(45deg, #667eea, #764ba2)",
-                postedBy: "EventPro",
-                postedDate: "2 days ago"
-            },
-            {
-                id: 2,
-                title: "Food Truck Friday",
-                description: "Over 20 food trucks serving diverse cuisines",
-                location: "Downtown Square",
-                date: "2024-07-12T17:00",
-                category: "food",
-                image: "linear-gradient(45deg, #f093fb, #f5576c)",
-                postedBy: "CityEvents",
-                postedDate: "5 days ago"
-            },
-            {
-                id: 3,
-                title: "Local Art Exhibition",
-                description: "Featuring works by emerging local artists",
-                location: "Community Arts Center",
-                date: "2024-07-20T10:00",
-                category: "art",
-                image: "linear-gradient(45deg, #4facfe, #00f2fe)",
-                postedBy: "ArtLover",
-                postedDate: "1 week ago"
-            },
-            {
-                id: 4,
-                title: "Morning Yoga in the Park",
-                description: "Free community yoga session for all levels",
-                location: "Central Park Pavilion",
-                date: "2024-07-13T08:00",
-                category: "community",
-                image: "linear-gradient(45deg, #43e97b, #38f9d7)",
-                postedBy: "YogaCommunity",
-                postedDate: "3 days ago"
-            },
-            {
-                id: 5,
-                title: "Basketball Tournament",
-                description: "3v3 street basketball tournament with prizes",
-                location: "Community Recreation Center",
-                date: "2024-07-16T14:00",
-                category: "sports",
-                image: "linear-gradient(45deg, #fa709a, #fee140)",
-                postedBy: "SportsClub",
-                postedDate: "1 day ago"
-            },
-            {
-                id: 6,
-                title: "Poetry Open Mic Night",
-                description: "Share your poetry or enjoy performances by others",
-                location: "The Coffee House",
-                date: "2024-07-18T19:30",
-                category: "art",
-                image: "linear-gradient(45deg, #a8edea, #fed6e3)",
-                postedBy: "PoetryGroup",
-                postedDate: "4 days ago"
-            }
-        ];
-
         let currentFilter = 'all';
-        let events = [...sampleEvents];
+        let events = [];
+
+        // API configuration
+        const API_BASE = 'api.php';
 
         // Initialize the board
         document.addEventListener('DOMContentLoaded', function() {
-            renderEvents();
+            loadEvents();
             setupFileUpload();
         });
 
+        // Load events from backend
+        async function loadEvents() {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}?path=events&category=${currentFilter}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load events');
+                }
+                
+                events = await response.json();
+                renderEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showError('Failed to load events. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
         function renderEvents() {
             const grid = document.getElementById('flyersGrid');
-            const filteredEvents = currentFilter === 'all' 
-                ? events 
-                : events.filter(event => event.category === currentFilter);
 
-            if (filteredEvents.length === 0) {
+            if (events.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <i class="fas fa-calendar-times"></i>
@@ -535,36 +485,25 @@
                 return;
             }
 
-            grid.innerHTML = filteredEvents.map(event => `
+            grid.innerHTML = events.map(event => `
                 <div class="flyer-card" data-category="${event.category}">
-                    <div class="flyer-image" style="background: ${event.image}"></div>
+                    <div class="flyer-image" style="background: ${event.image_gradient}"></div>
                     <div class="flyer-info">
                         <div class="flyer-title">${event.title}</div>
                         <div class="flyer-details">
                             <i class="fas fa-map-marker-alt"></i> ${event.location}<br>
-                            <i class="fas fa-clock"></i> ${formatDate(event.date)}
+                            <i class="fas fa-clock"></i> ${event.formatted_date}
                         </div>
                         <div class="flyer-meta">
-                            <span>By ${event.postedBy}</span>
-                            <span>${event.postedDate}</span>
+                            <span>By ${event.posted_by}</span>
+                            <span>${event.posted_date}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            });
-        }
-
-        function filterEvents(category) {
+        async function filterEvents(category) {
             currentFilter = category;
             
             // Update active tab
@@ -573,7 +512,8 @@
             });
             event.target.classList.add('active');
             
-            renderEvents();
+            // Reload events with new filter
+            await loadEvents();
         }
 
         function openUploadModal() {
@@ -635,7 +575,7 @@
             `;
         }
 
-        function submitEvent() {
+        async function submitEvent() {
             const title = document.getElementById('eventTitle').value;
             const description = document.getElementById('eventDescription').value;
             const location = document.getElementById('eventLocation').value;
@@ -643,29 +583,57 @@
             const category = document.getElementById('eventCategory').value;
 
             if (!title || !location || !date) {
-                alert('Please fill in all required fields');
+                showError('Please fill in all required fields');
                 return;
             }
 
-            // Create new event
-            const newEvent = {
-                id: events.length + 1,
-                title,
-                description,
-                location,
-                date,
-                category,
-                image: getRandomGradient(),
-                postedBy: "You",
-                postedDate: "Just now"
-            };
+            const submitBtn = document.querySelector('.btn-submit');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                // Show loading state
+                submitBtn.textContent = 'Sharing...';
+                submitBtn.disabled = true;
 
-            events.unshift(newEvent); // Add to beginning
-            renderEvents();
-            closeUploadModal();
+                // Create new event via API
+                const eventData = {
+                    title,
+                    description,
+                    location,
+                    event_date: date,
+                    category,
+                    posted_by: "You"
+                };
 
-            // Show success message
-            showNotification('Event shared successfully! 🎉');
+                const response = await fetch(API_BASE + '?path=events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(eventData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create event');
+                }
+
+                const newEvent = await response.json();
+                
+                // Reload events to show the new one
+                await loadEvents();
+                closeUploadModal();
+
+                // Show success message
+                showNotification('Event shared successfully! 🎉');
+
+            } catch (error) {
+                console.error('Error creating event:', error);
+                showError('Failed to share event. Please try again.');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         }
 
         function getRandomGradient() {
@@ -682,13 +650,14 @@
             return gradients[Math.floor(Math.random() * gradients.length)];
         }
 
-        function showNotification(message) {
+        function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
+            const bgColor = type === 'error' ? '#ef4444' : '#10b981';
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #10b981;
+                background: ${bgColor};
                 color: white;
                 padding: 15px 25px;
                 border-radius: 10px;
@@ -709,6 +678,23 @@
                 notification.style.transform = 'translateX(100%)';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showLoading(show) {
+            const grid = document.getElementById('flyersGrid');
+            if (show) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                        <h3>Loading events...</h3>
+                        <p>Please wait while we fetch the latest events.</p>
+                    </div>
+                `;
+            }
         }
 
         // Close modal when clicking outside
