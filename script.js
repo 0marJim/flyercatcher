@@ -257,3 +257,55 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Fetch and display events on load
+async function fetchEvents(category = 'all') {
+    const url = category === 'all' ? '/api.php?path=events' : `/api.php?path=events&category=${category.toLowerCase().replace(' & ', '_')}`;
+    const response = await fetch(url);
+    const events = await response.json();
+    const grid = document.getElementById('event-grid');
+    grid.innerHTML = ''; // Clear grid
+    events.forEach(event => {
+        const card = document.createElement('div');
+        card.className = 'event-card'; // Add styling in CSS
+        card.innerHTML = `
+            <h3>${event.title}</h3>
+            <p>${event.description}</p>
+            <p>Location: ${event.location}</p>
+            <p>Date: ${event.formatted_date}</p>
+            <p>Posted: ${event.posted_date}</p>
+            ${event.image_url ? `<img src="${event.image_url}" alt="Event Image">` : `<div style="background: ${event.image_gradient}; height: 200px;"></div>`}
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// Handle form submission
+document.getElementById('shareEventBtn').addEventListener('click', async () => { // Assume button ID
+    const formData = new FormData();
+    formData.append('title', document.getElementById('eventTitle').value);
+    formData.append('description', document.getElementById('eventDescription').value);
+    formData.append('location', document.getElementById('eventLocation').value);
+    let eventDate = document.getElementById('eventDate').value;
+    eventDate = eventDate.replace('T', ' ') + ':00'; // Fix format
+    formData.append('event_date', eventDate);
+    formData.append('category', document.getElementById('eventCategory').value.toLowerCase().replace(' & ', '_'));
+    const file = document.getElementById('eventImage').files[0];
+    if (file) formData.append('image', file);
+
+    const response = await fetch('/api.php?path=events', { method: 'POST', body: formData });
+    if (response.ok) {
+        fetchEvents(); // Refresh grid
+        document.getElementById('shareEventModal').classList.add('hidden'); // Close modal
+    } else {
+        alert('Error adding event');
+    }
+});
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => { // Assume class on filters
+    btn.addEventListener('click', () => fetchEvents(btn.textContent.trim()));
+});
+
+// Initial load
+window.addEventListener('load', () => fetchEvents());
