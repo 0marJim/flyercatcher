@@ -14,6 +14,7 @@ try {
         event_date DATETIME NOT NULL,
         category VARCHAR(50) NOT NULL,
         image_gradient VARCHAR(100),
+        image_url VARCHAR(255),
         posted_by VARCHAR(100) DEFAULT 'Anonymous',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -82,7 +83,7 @@ try {
             ]
         ];
         
-        $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, posted_by) 
+        $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, image_url, posted_by) 
                              VALUES (?, ?, ?, ?, ?, ?, ?)");
         
         foreach ($sampleEvents as $event) {

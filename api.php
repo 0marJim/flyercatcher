@@ -54,6 +54,11 @@ function handleGetRequest($db, $path) {
             $sql = "SELECT * FROM events WHERE category = ? ORDER BY created_at DESC";
             $params = [$category];
         }
+        // could be more efficient?????? 
+        // Issue: In handleGetRequest, the loop that formats formatted_date and posted_date could be optimized by performing date formatting in SQL for large datasets.
+        // Recommendation: Use SQL to format dates if possible (though SQLite has limited date formatting). Alternatively, ensure the dataset size is manageable or implement pagination:
+        // php$sql = "SELECT * FROM events WHERE category = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        // $params = [$category, $limit, $offset];
         
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -161,6 +166,13 @@ function handleImageUpload($db) {
             echo json_encode(['error' => 'No valid image uploaded']);
             return;
         }
+        // Add server-side file validation (e.g., using getimagesize() to verify image content) and sanitize filenames to prevent directory traversal attacks.
+        if (!getimagesize($file['tmp_name'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid image file']);
+            return;
+        }
+        $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '', $filename); // Sanitize filename
         
         $file = $_FILES['image'];
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -180,7 +192,9 @@ function handleImageUpload($db) {
         // Generate unique filename
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = uniqid('event_', true) . '.' . $extension;
-        $uploadPath = 'uploads/' . $filename;
+        define('UPLOAD_DIR', __DIR__ . '/uploads/');
+        $uploadPath = UPLOAD_DIR . $filename;
+        // $uploadPath = 'uploads/' . $filename;
         $fullPath = __DIR__ . '/' . $uploadPath;
         
         // Move uploaded file
