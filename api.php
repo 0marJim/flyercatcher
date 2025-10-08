@@ -122,7 +122,7 @@ function handlePostRequest($db, $path) {
         
         try {
             $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, image_url, posted_by) 
-                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             
             $stmt->execute([
                 $input['title'],

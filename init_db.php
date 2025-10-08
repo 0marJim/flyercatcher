@@ -83,7 +83,8 @@ try {
             ]
         ];
         
-        $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, image_url, posted_by) 
+        // Fix: Exclude image_url from INSERT since it's not provided
+        $stmt = $db->prepare("INSERT INTO events (title, description, location, event_date, category, image_gradient, posted_by) 
                              VALUES (?, ?, ?, ?, ?, ?, ?)");
         
         foreach ($sampleEvents as $event) {
