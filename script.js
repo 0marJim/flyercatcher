@@ -259,7 +259,7 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Fetch and display events on load
-const API_URL = 'flyercatcher.infinityfreeapp.com';
+const API_URL = 'http://flyercatcher.infinityfreeapp.com/api.php';
 async function fetchEvents(category = 'all') {
     const url = category === 'all' ? `${API_URL}?path=events` : `${API_URL}?path=events&category=${category.toLowerCase().replace(' & ', '_')}`;
     const response = await fetch(url);
